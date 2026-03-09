@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPA Developer — Model Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b0f1c;--paper:#f4f1eb;--cream:#ece8df;--card:#fff;
+  --accent:#1a7a4a;--blue:#1a4fd6;--teal:#0a9e7a;--gold:#c9870d;
+  --muted:#6b7280;--border:#e0dbd0;
+  --correct:#0a9e7a;--wrong:#d41a3c;--skip:#c9870d;
+  --shadow:0 4px 32px rgba(11,15,28,.09);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden}
+
+/* ─── LANDING ─── */
+#landing{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);position:relative;overflow:hidden}
+.l-noise{position:absolute;inset:0;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:180px}
+.l-lines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 47px,rgba(255,255,255,.025) 47px,rgba(255,255,255,.025) 48px),repeating-linear-gradient(90deg,transparent,transparent 47px,rgba(255,255,255,.025) 47px,rgba(255,255,255,.025) 48px)}
+.l-glow{position:absolute;border-radius:50%;filter:blur(110px);pointer-events:none}
+.lg1{width:520px;height:520px;background:var(--blue);opacity:.16;top:-160px;left:-120px}
+.lg2{width:440px;height:440px;background:var(--accent);opacity:.18;bottom:-110px;right:-90px}
+.lg3{width:340px;height:340px;background:var(--teal);opacity:.11;top:50%;left:55%;transform:translate(-50%,-50%)}
+.l-content{position:relative;z-index:2;text-align:center;padding:48px 24px;max-width:820px}
+.l-eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.13);border-radius:100px;padding:6px 18px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:28px}
+.l-eyebrow span{width:6px;height:6px;border-radius:50%;background:var(--teal);display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.l-title{font-family:'Cormorant Garamond',serif;font-size:clamp(3.2rem,9vw,6.5rem);font-weight:700;color:#fff;line-height:.95;letter-spacing:-.02em;margin-bottom:12px}
+.l-title em{color:#4ade80;font-style:italic}
+.l-sub{color:rgba(255,255,255,.38);font-size:1rem;font-weight:300;margin-bottom:48px;letter-spacing:.05em}
+.l-stats{display:inline-flex;border:1px solid rgba(255,255,255,.09);border-radius:18px;overflow:hidden;margin-bottom:40px;background:rgba(255,255,255,.04);backdrop-filter:blur(14px)}
+.l-stat{padding:18px 30px;border-right:1px solid rgba(255,255,255,.09);text-align:center}
+.l-stat:last-child{border-right:none}
+.l-stat-n{font-family:'JetBrains Mono',monospace;font-size:2.1rem;font-weight:700;color:#4ade80;display:block;line-height:1}
+.l-stat-l{font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.32);margin-top:4px}
+.l-secs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:46px}
+.l-sec{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:10px 18px;font-size:12.5px;color:rgba(255,255,255,.55)}
+.l-sec strong{color:#fff}
+.start-btn{background:var(--accent);color:#fff;border:none;padding:18px 58px;border-radius:100px;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:.05em;box-shadow:0 8px 40px rgba(26,122,74,.45);transition:transform .15s,box-shadow .15s}
+.start-btn:hover{transform:translateY(-3px);box-shadow:0 14px 50px rgba(26,122,74,.6)}
+
+/* ─── EXAM ─── */
+#exam{display:none;min-height:100vh;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(244,241,235,.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;padding:0 24px;gap:18px}
+.tb-brand{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.15rem;white-space:nowrap;color:var(--ink)}
+.tb-brand em{color:var(--accent);font-style:italic}
+.tb-prog{flex:1;height:5px;background:#e0dbd0;border-radius:100px;overflow:hidden}
+.tb-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--blue),var(--accent));transition:width .4s ease;width:0%}
+.tb-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap}
+.tb-timer{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;background:var(--ink);color:#fff;padding:5px 13px;border-radius:8px;white-space:nowrap}
+.tb-timer.warn{background:var(--wrong);animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.55}}
+.exam-body{flex:1;display:flex;max-width:1300px;margin:0 auto;width:100%;padding:28px 24px;gap:24px}
+.q-area{flex:1;min-width:0}
+.sec-tag{display:inline-flex;align-items:center;gap:7px;padding:5px 16px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:18px;color:#fff}
+.sec-tag.s1{background:var(--ink)}.sec-tag.s2{background:var(--accent)}
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:34px 38px;box-shadow:var(--shadow);animation:cardIn .28s cubic-bezier(.4,0,.2,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.q-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.q-text{font-size:1.1rem;font-weight:500;line-height:1.72;color:var(--ink);margin-bottom:26px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:580px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;align-items:flex-start;gap:11px;background:var(--paper);border:2px solid transparent;border-radius:12px;padding:12px 16px;cursor:pointer;text-align:left;font-family:'Outfit',sans-serif;font-size:.88rem;color:var(--ink);line-height:1.5;transition:all .12s}
+.opt:hover:not(:disabled){border-color:var(--blue);background:#eef3ff;transform:translateY(-1px)}
+.opt.sel{border-color:var(--blue);background:#e8efff}
+.opt.cor{border-color:var(--correct);background:#e6f8f3;animation:pop .32s ease}
+.opt.wrg{border-color:var(--wrong);background:#fde8ed;animation:jolt .32s ease}
+.opt.rev{border-color:var(--correct);background:#e6f8f3}
+@keyframes pop{0%,100%{transform:scale(1)}50%{transform:scale(1.018)}}
+@keyframes jolt{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.opt-ltr{width:27px;height:27px;min-width:27px;border-radius:7px;background:rgba(11,15,28,.08);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--muted);transition:all .12s;margin-top:1px}
+.sel .opt-ltr{background:var(--blue);color:#fff}.cor .opt-ltr{background:var(--correct);color:#fff}.wrg .opt-ltr{background:var(--wrong);color:#fff}.rev .opt-ltr{background:var(--correct);color:#fff}
+.feedback{margin-top:17px;padding:12px 17px;border-radius:11px;font-size:.87rem;font-weight:500;display:none;gap:9px;align-items:flex-start;animation:feedIn .25s ease}
+@keyframes feedIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.feedback.ok{background:#e6f8f3;border:1px solid rgba(10,158,122,.28);color:#056b52;display:flex}
+.feedback.ko{background:#fde8ed;border:1px solid rgba(212,26,60,.25);color:#8b0a23;display:flex}
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-top:22px;gap:12px}
+.nav-btn{display:flex;align-items:center;gap:7px;border:2px solid var(--ink);background:transparent;color:var(--ink);padding:10px 22px;border-radius:100px;font-family:'Outfit',sans-serif;font-size:.87rem;font-weight:700;cursor:pointer;transition:all .12s;letter-spacing:.03em}
+.nav-btn:hover{background:var(--ink);color:#fff}.nav-btn.pri{background:var(--ink);color:#fff}.nav-btn.pri:hover{background:var(--accent);border-color:var(--accent)}.nav-btn:disabled{opacity:.3;pointer-events:none}
+.skip-lnk{background:none;border:none;color:var(--muted);font-family:'Outfit',sans-serif;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:8px}.skip-lnk:hover{color:var(--ink)}
+.sidebar{width:252px;flex-shrink:0}
+@media(max-width:900px){.sidebar{display:none}}
+.sb-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:17px;box-shadow:var(--shadow);margin-bottom:13px;position:sticky;top:72px}
+.sb-title{font-size:9.5px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);font-weight:700;margin-bottom:11px}
+.score-duo{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.score-chip{background:var(--paper);border-radius:9px;padding:9px;text-align:center}
+.score-chip .v{font-family:'JetBrains Mono',monospace;font-size:1.45rem;font-weight:700;display:block}
+.score-chip .l{font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.score-chip.c .v{color:var(--correct)}.score-chip.w .v{color:var(--wrong)}
+.qmap{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.qd{width:27px;height:27px;border-radius:6px;background:var(--paper);border:1.5px solid #d9d3c9;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);cursor:pointer;transition:all .1s;font-weight:500}
+.qd:hover{border-color:var(--blue);color:var(--blue)}.qd.cur{background:var(--ink);color:#fff;border-color:var(--ink)}.qd.ans{background:var(--blue);color:#fff;border-color:var(--blue)}.qd.cok{background:var(--correct);color:#fff;border-color:var(--correct)}.qd.cwr{background:var(--wrong);color:#fff;border-color:var(--wrong)}.qd.skp{background:var(--skip);color:#fff;border-color:var(--skip)}
+
+/* ─── RESULTS ─── */
+#results{display:none;min-height:100vh;background:var(--paper);padding:0}
+.res-hero{background:var(--ink);padding:64px 24px 80px;text-align:center;position:relative;overflow:hidden}
+.res-hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 60% 50%,rgba(26,122,74,.15),transparent 70%)}
+.res-eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:20px}
+.res-ring{position:relative;display:inline-block;margin:0 auto 24px}
+.res-ring svg{display:block}
+.ring-bg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:8}
+.ring-fg{fill:none;stroke:var(--teal);stroke-width:8;stroke-linecap:round;stroke-dasharray:502;stroke-dashoffset:502;transition:stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1);transform:rotate(-90deg);transform-origin:50% 50%}
+.ring-pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct .pn{font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;color:#fff;line-height:1}
+.ring-pct .pl{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.35)}
+.res-grade{font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:700;color:#fff;line-height:1;margin-bottom:8px}
+.res-msg{color:rgba(255,255,255,.45);font-size:.95rem;font-weight:300;margin-bottom:32px}
+.res-trio{display:inline-flex;gap:0;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.04)}
+.res-chip{padding:16px 26px;border-right:1px solid rgba(255,255,255,.1);text-align:center}
+.res-chip:last-child{border-right:none}
+.res-chip .rv{font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:700;display:block;line-height:1}
+.rc-c .rv{color:var(--teal)}.rc-w .rv{color:var(--wrong)}.rc-s .rv{color:var(--gold)}
+.res-chip .rl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-top:3px}
+.res-body{max-width:820px;margin:0 auto;padding:40px 24px}
+.res-section-bars{margin-bottom:28px}
+.rsb-row{display:grid;grid-template-columns:180px 1fr 60px;align-items:center;gap:14px;margin-bottom:12px}
+.rsb-label{font-size:.8rem;font-weight:600;text-align:right;color:var(--muted)}
+.rsb-bar{height:8px;border-radius:100px;background:#e0dbd0;overflow:hidden}
+.rsb-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--teal),var(--blue));transition:width 1s ease}
+.rsb-pct{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--ink)}
+.res-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:16px}
+.res-btn{padding:13px 34px;border-radius:100px;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;border:2px solid;letter-spacing:.04em;transition:all .13s}
+.res-btn.pri{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 6px 28px rgba(26,122,74,.35)}
+.res-btn.pri:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(26,122,74,.45)}
+.res-btn.sec{background:transparent;color:var(--ink);border-color:var(--ink)}
+.res-btn.sec:hover{background:var(--ink);color:#fff}
+
+/* ─── CERT FORM ─── */
+#certForm{display:none;min-height:100vh;align-items:center;justify-content:center;background:var(--paper);padding:40px 24px}
+.cf-box{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:44px;max-width:480px;width:100%;box-shadow:var(--shadow)}
+.cf-title{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;margin-bottom:6px}
+.cf-sub{color:var(--muted);font-size:.87rem;margin-bottom:30px}
+.cf-label{display:block;font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;margin-top:16px}
+.cf-input{width:100%;border:2px solid var(--border);border-radius:10px;padding:11px 14px;font-family:'Outfit',sans-serif;font-size:.9rem;color:var(--ink);background:var(--paper);transition:border-color .12s;outline:none}
+.cf-input:focus{border-color:var(--accent)}
+.cf-actions{display:flex;gap:10px;margin-top:26px}
+.cf-btn{flex:1;padding:13px;border-radius:100px;font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;border:2px solid;letter-spacing:.04em;transition:all .13s}
+.cf-btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cf-btn.pri:hover{transform:translateY(-2px)}
+.cf-btn.sec{background:transparent;color:var(--ink);border-color:var(--ink)}
+.cf-btn.sec:hover{background:var(--ink);color:#fff}
+
+/* ─── CERT VIEW ─── */
+#certView{display:none;min-height:100vh;background:#b8b0a2;padding:36px 24px;flex-direction:column;align-items:center}
+.cert-actions{display:flex;gap:11px;justify-content:center;margin-bottom:26px;flex-wrap:wrap}
+.cert-btn{padding:11px 26px;border-radius:100px;font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .14s;border:2px solid;letter-spacing:.03em;background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:0 5px 20px rgba(11,15,28,.22)}
+.cert-btn:hover{background:var(--accent);border-color:var(--accent)}
+.cert-btn.bk{background:#fff;border-color:rgba(11,15,28,.25);color:var(--ink)}
+.cert-btn.bk:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ═══════════════ A4 PROGRESS CARD ═══════════════ */
+#a4card{width:794px;background:#fff;position:relative;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.28);font-family:'Outfit',sans-serif}
+/* decorative layer */
+.deco{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.deco-circle1{position:absolute;top:-140px;right:-100px;width:440px;height:440px;border-radius:50%;background:radial-gradient(circle,rgba(26,122,74,.09) 0%,transparent 70%)}
+.deco-circle2{position:absolute;bottom:-100px;left:-80px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(10,158,122,.06) 0%,transparent 70%)}
+.deco-hlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(11,15,28,.018) 39px,rgba(11,15,28,.018) 40px)}
+/* gold corner brackets */
+.corner{position:absolute;width:100px;height:100px;z-index:1;pointer-events:none}
+.corner.tl{top:14px;left:14px;border-top:2.5px solid var(--accent);border-left:2.5px solid var(--accent)}
+.corner.br{bottom:14px;right:14px;border-bottom:2.5px solid var(--accent);border-right:2.5px solid var(--accent)}
+.corner.tr{top:14px;right:14px;border-top:2.5px solid var(--accent);border-right:2.5px solid var(--accent)}
+.corner.bl{bottom:14px;left:14px;border-bottom:2.5px solid var(--accent);border-left:2.5px solid var(--accent)}
+/* watermark */
+.wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;pointer-events:none}
+.wm span{font-family:'Cormorant Garamond',serif;font-size:8rem;font-weight:700;color:rgba(11,15,28,.022);letter-spacing:-.04em;transform:rotate(-22deg);white-space:nowrap;user-select:none}
+/* card content */
+.cc{position:relative;z-index:2;padding:46px 54px 0}
+/* header */
+.ch{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:20px;border-bottom:2px solid var(--accent);margin-bottom:26px}
+.ch-logorow{display:flex;align-items:center;gap:11px;margin-bottom:5px}
+.ch-logobx{width:40px;height:40px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ch-logobx svg{width:22px;height:22px}
+.ch-org{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--accent);line-height:1}
+.ch-dept{font-size:.68rem;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-top:3px}
+.ch-right{text-align:right}
+.ch-doc-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);font-weight:700;margin-bottom:2px}
+.ch-doc-id{font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:700;color:var(--accent)}
+.ch-date{font-size:.66rem;color:var(--muted);margin-top:2px}
+/* banner */
+.cbanner{background:linear-gradient(135deg,#0b1f14 0%,#1a7a4a 100%);border-radius:13px;padding:20px 26px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative}
+.cbanner::after{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.03)}
+.cban-l .cban-tag{font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,255,255,.38);font-weight:700;margin-bottom:5px}
+.cban-l .cban-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:#fff;line-height:1.1}
+.cban-l .cban-title em{color:var(--gold);font-style:italic}
+.cban-r .cban-badge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:8px 14px;text-align:center}
+.cban-badge-v{font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:700;color:#fff;display:block;line-height:1}
+.cban-badge-l{font-size:.56rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.42);margin-top:2px}
+/* student row */
+.cstu{display:grid;grid-template-columns:1fr 1fr 1fr;border:1.5px solid rgba(26,122,74,.3);border-radius:11px;overflow:hidden;margin-bottom:22px}
+.cstu-f{padding:12px 16px;border-right:1.5px solid rgba(26,122,74,.2);background:#f8fdf9}
+.cstu-f:last-child{border-right:none}
+.cstu-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700;margin-bottom:4px}
+.cstu-val{font-size:.97rem;font-weight:700;color:var(--ink)}
+/* grade + stats */
+.cgrow{display:flex;align-items:stretch;gap:14px;margin-bottom:22px}
+.cg-donut{flex-shrink:0;width:120px;background:#f0fdf7;border-radius:13px;padding:14px;border:1.5px solid rgba(26,122,74,.15);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cg-donut svg{width:80px;height:80px}
+.cg-donut-lbl{font-size:.56rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:5px;font-weight:700;text-align:center}
+.cg-pct-text{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;fill:var(--accent);dominant-baseline:middle;text-anchor:middle}
+.cg-boxes{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cg-box{background:#f0fdf7;border-radius:11px;padding:12px 14px;border:1px solid rgba(26,122,74,.12);display:flex;flex-direction:column;justify-content:center}
+.cg-box .bl{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:3px}
+.cg-box .bv{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700}
+.bv.g{color:var(--correct)}.bv.r{color:var(--wrong)}.bv.y{color:var(--gold)}.bv.b{color:var(--accent)}
+.cg-grade-full{grid-column:span 2;background:linear-gradient(135deg,#0b1f14,#0d2e1a);border-radius:11px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cg-grade-full .gn{font-family:'Cormorant Garamond',serif;font-size:1.65rem;font-weight:700;color:#fff;white-space:nowrap}
+.cg-grade-full .gn em{color:var(--gold);font-style:italic}
+.cg-grade-full .gm{font-size:.73rem;color:rgba(255,255,255,.45);line-height:1.45;max-width:240px}
+/* section table */
+.ctable{margin-bottom:20px}
+.cth{display:grid;grid-template-columns:1fr 68px 68px 68px 80px;background:linear-gradient(90deg,#0b1f14,#0d2e1a);border-radius:9px 9px 0 0;overflow:hidden}
+.cth-c{padding:8px 12px;font-size:.59rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:rgba(255,255,255,.45);text-align:center}
+.cth-c:first-child{text-align:left}
+.ctr{display:grid;grid-template-columns:1fr 68px 68px 68px 80px;border:1px solid rgba(26,122,74,.18);border-top:none}
+.ctr:last-of-type{border-radius:0 0 9px 9px;overflow:hidden}
+.ctc{padding:9px 12px;font-size:.78rem;font-weight:500;color:var(--ink);text-align:center;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border)}
+.ctc:first-child{text-align:left;justify-content:flex-start;font-weight:600;font-size:.77rem}
+.ctc:last-child{border-right:none}
+.ctc.g{color:var(--correct);font-family:'JetBrains Mono',monospace;font-weight:700}
+.ctc.r{color:var(--wrong);font-family:'JetBrains Mono',monospace;font-weight:700}
+.ctc.b{color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700}
+.ctr-total{display:grid;grid-template-columns:1fr 68px 68px 68px 80px;background:#f0fdf7;border:1.5px solid var(--accent);border-top:none;border-radius:0 0 9px 9px;overflow:hidden}
+.bar-wr{width:50px;height:5px;background:#c8e6d4;border-radius:100px;overflow:hidden}
+.bar-in{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--accent),var(--teal))}
+/* perf bar */
+.perf-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700;margin-bottom:8px}
+.perf-track{height:9px;background:#d4ede1;border-radius:100px;overflow:hidden;margin-bottom:4px}
+.perf-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--accent),var(--teal),var(--correct))}
+.perf-ticks{display:flex;justify-content:space-between;font-size:.58rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:18px}
+/* remarks */
+.cremarks{background:linear-gradient(135deg,#f0fdf7,#fff);border:1.5px solid rgba(26,122,74,.25);border-left:3px solid var(--accent);border-radius:11px;padding:14px 18px;margin-bottom:20px}
+.cremarks-t{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700;margin-bottom:7px}
+.cremarks-tx{font-size:.77rem;line-height:1.65;color:var(--ink)}
+/* footer */
+.cfooter{display:flex;align-items:flex-end;justify-content:space-between;padding-top:18px;border-top:2px solid var(--accent);margin-bottom:20px}
+.cfsig{text-align:center}
+.cfsig-line{width:130px;border-bottom:1.5px solid var(--accent);margin-bottom:5px;height:24px}
+.cfsig-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700}
+.cfseal{width:66px;height:66px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:6px}
+.cfseal span{font-family:'Cormorant Garamond',serif;font-size:.5rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;line-height:1.4}
+/* bottom strip */
+.cstrip{background:linear-gradient(90deg,#0b1f14,#0d2e1a);padding:9px 54px;display:flex;align-items:center;justify-content:space-between}
+.cstrip-l{font-size:.58rem;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace}
+.cstrip-r{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.05em}
+
+/* ─── REVIEW ─── */
+.rev-q{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 26px;margin-bottom:16px}
+.rev-q.rq-c{border-left:4px solid var(--correct)}.rev-q.rq-w{border-left:4px solid var(--wrong)}.rev-q.rq-s{border-left:4px solid var(--skip)}
+.rev-qn{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.rev-qt{font-size:.92rem;font-weight:500;color:var(--ink);margin-bottom:10px}
+.rev-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rev-opt{font-size:.82rem;padding:7px 11px;border-radius:8px;background:var(--paper);border:1.5px solid transparent;display:flex;gap:7px}
+.rev-opt.ro-c{border-color:var(--correct);background:#e6f8f3;color:#056b52}
+.rev-opt.ro-w{border-color:var(--wrong);background:#fde8ed;color:#8b0a23}
+.rev-opt-ltr{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;min-width:18px}
+
+/* ─── PRINT ─── */
+@media print{
+  #landing,#exam,#results,#certForm,#certView .cert-actions{display:none!important}
+  #certView{display:block!important;background:none!important;padding:0!important;min-height:0!important}
+  #a4card{box-shadow:none!important;width:210mm!important;min-height:297mm!important}
+  @page{size:A4 portrait;margin:0}
+}
+</style>
+</head>
+<body>
+
+<!-- ── LANDING ── -->
+<div id="landing">
+  <div class="l-noise"></div><div class="l-lines"></div>
+  <div class="l-glow lg1"></div><div class="l-glow lg2"></div><div class="l-glow lg3"></div>
+  <div class="l-content">
+    <div class="l-eyebrow"><span></span> SSC/Q8604 · IT-ITeS SSC NASSCOM · NSQF Level 5.5</div>
+    <h1 class="l-title">RPA <em>Developer</em></h1>
+    <p class="l-sub">Model Assessment — Robotic Process Automation</p>
+    <div class="l-stats">
+      <div class="l-stat"><span class="l-stat-n">82</span><div class="l-stat-l">Questions</div></div>
+      <div class="l-stat"><span class="l-stat-n">90</span><div class="l-stat-l">Minutes</div></div>
+      <div class="l-stat"><span class="l-stat-n">82</span><div class="l-stat-l">Marks</div></div>
+      <div class="l-stat"><span class="l-stat-n">0</span><div class="l-stat-l">Negative</div></div>
+    </div>
+    <div class="l-secs">
+      <div class="l-sec"><strong>Section I</strong> Employability &amp; Professional Skills · Q1–33</div>
+      <div class="l-sec"><strong>Section II</strong> RPA Technical &amp; Domain Skills · Q34–82</div>
+    </div>
+    <button class="start-btn" onclick="startExam()">Begin Assessment →</button>
+  </div>
+</div>
+
+<!-- ── EXAM ── -->
+<div id="exam">
+  <div class="topbar">
+    <div class="tb-brand">RPA <em>Developer</em></div>
+    <div class="tb-prog"><div class="tb-fill" id="tbFill"></div></div>
+    <div class="tb-count" id="tbCount">Q 1 / 82</div>
+    <div class="tb-timer" id="tbTimer">1:30:00</div>
+  </div>
+  <div class="exam-body">
+    <div class="q-area">
+      <div class="sec-tag s1" id="secTag">Section I</div>
+      <div class="q-card" id="qCard">
+        <div class="q-meta" id="qMeta"></div>
+        <div class="q-text" id="qText"></div>
+        <div class="opts" id="opts"></div>
+        <div class="feedback" id="feedback"></div>
+      </div>
+      <div class="nav-row">
+        <button class="nav-btn" id="prevBtn" onclick="go(-1)">← Previous</button>
+        <button class="skip-lnk" onclick="skip()">Skip question</button>
+        <button class="nav-btn pri" id="nextBtn" onclick="go(1)">Next →</button>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="sb-card">
+        <div class="sb-title">Live Score</div>
+        <div class="score-duo">
+          <div class="score-chip c"><span class="v" id="sbC">0</span><div class="l">Correct</div></div>
+          <div class="score-chip w"><span class="v" id="sbW">0</span><div class="l">Wrong</div></div>
+        </div>
+      </div>
+      <div class="sb-card">
+        <div class="sb-title">Question Map</div>
+        <div class="qmap" id="qmap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RESULTS ── -->
+<div id="results">
+  <div class="res-hero">
+    <div class="res-eyebrow">Assessment Complete — RPA Developer · SSC/Q8604</div>
+    <div class="res-ring">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <circle class="ring-bg" cx="80" cy="80" r="68"/>
+        <circle class="ring-fg" id="ringFg" cx="80" cy="80" r="68"/>
+      </svg>
+      <div class="ring-pct"><div class="pn" id="resPct">0%</div><div class="pl">Score</div></div>
+    </div>
+    <div class="res-grade" id="resGrade"></div>
+    <div class="res-msg" id="resMsg"></div>
+    <div class="res-trio">
+      <div class="res-chip rc-c"><span class="rv" id="resC">0</span><div class="rl">Correct</div></div>
+      <div class="res-chip rc-w"><span class="rv" id="resW">0</span><div class="rl">Wrong</div></div>
+      <div class="res-chip rc-s"><span class="rv" id="resSk">0</span><div class="rl">Skipped</div></div>
+    </div>
+  </div>
+  <div class="res-body">
+    <div class="res-section-bars" id="resSBars"></div>
+    <div class="res-actions">
+      <button class="res-btn pri" onclick="goToCertForm()">🏅 Generate Progress Card</button>
+      <button class="res-btn sec" onclick="toggleReview()">Review Answers</button>
+      <button class="res-btn sec" onclick="retake()">Retake</button>
+      <button class="res-btn sec" onclick="backHome()">Home</button>
+    </div>
+    <div id="reviewArea"></div>
+  </div>
+</div>
+
+<!-- ── CERT FORM ── -->
+<div id="certForm">
+  <div class="cf-box">
+    <div class="cf-title">Progress Card</div>
+    <div class="cf-sub">Enter student details to generate the official A4 progress card.</div>
+    <label class="cf-label">Full Name *</label>
+    <input class="cf-input" id="cfName" placeholder="e.g. Rahul Kumar Singh" />
+    <label class="cf-label">Admission Number *</label>
+    <input class="cf-input" id="cfAdm" placeholder="e.g. RPADE2025001" />
+    <label class="cf-label">Batch / Year *</label>
+    <input class="cf-input" id="cfBatch" placeholder="e.g. 2025–26 Batch A" />
+    <label class="cf-label">Institute / Centre Name</label>
+    <input class="cf-input" id="cfInst" placeholder="e.g. NASSCOM Skill Centre, Noida" />
+    <div class="cf-actions">
+      <button class="cf-btn sec" onclick="document.getElementById('certForm').style.display='none';document.getElementById('results').style.display='block'">← Back</button>
+      <button class="cf-btn pri" onclick="generateCard()">Generate Card →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CERT VIEW ── -->
+<div id="certView">
+  <div class="cert-actions">
+    <button class="cert-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+    <button class="cert-btn" onclick="document.getElementById('certView').style.display='none';document.getElementById('results').style.display='block'">← Back to Results</button>
+  </div>
+  <!-- ═══ A4 PROGRESS CARD ═══ -->
+  <div id="a4card">
+    <div class="deco">
+      <div class="deco-circle1"></div>
+      <div class="deco-circle2"></div>
+      <div class="deco-hlines"></div>
+    </div>
+    <div class="corner tl"></div><div class="corner tr"></div>
+    <div class="corner bl"></div><div class="corner br"></div>
+    <div class="wm"><span>PROGRESS CARD</span></div>
+
+    <div class="cc">
+      <!-- HEADER -->
+      <div class="ch">
+        <div>
+          <div class="ch-logorow">
+            <div class="ch-logobx">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.5" stroke="#fff" stroke-width="1.7"/><rect x="13" y="3" width="8" height="8" rx="1.5" stroke="#fff" stroke-width="1.7"/><rect x="3" y="13" width="8" height="8" rx="1.5" stroke="#fff" stroke-width="1.7"/><path d="M13 17h8M17 13v8" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </div>
+            <div class="ch-org" id="cardInst">IT-ITeS Skill Centre</div>
+          </div>
+          <div class="ch-dept">Department of Robotic Process Automation &amp; Future Skills</div>
+        </div>
+        <div class="ch-right">
+          <div class="ch-doc-lbl">Document Ref.</div>
+          <div class="ch-doc-id" id="cardDocId">RPADE/2025/—</div>
+          <div class="ch-date" id="cardDate">—</div>
+        </div>
+      </div>
+
+      <!-- BANNER -->
+      <div class="cbanner">
+        <div class="cban-l">
+          <div class="cban-tag">Official Assessment Record · SSC/Q8604 v3.0 · NSQF Level 5.5</div>
+          <div class="cban-title">RPA <em>Developer</em><br>Progress Card</div>
+        </div>
+        <div class="cban-r">
+          <div class="cban-badge">
+            <span class="cban-badge-v" id="cardGradeBadge">—</span>
+            <div class="cban-badge-l">Grade</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STUDENT -->
+      <div class="cstu">
+        <div class="cstu-f"><div class="cstu-lbl">Student Name</div><div class="cstu-val" id="cardName">—</div></div>
+        <div class="cstu-f"><div class="cstu-lbl">Admission No.</div><div class="cstu-val" id="cardAdm">—</div></div>
+        <div class="cstu-f" style="border-right:none"><div class="cstu-lbl">Batch / Year</div><div class="cstu-val" id="cardBatch">—</div></div>
+      </div>
+
+      <!-- GRADE ROW -->
+      <div class="cgrow">
+        <div class="cg-donut">
+          <svg viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#e0dbd0" stroke-width="7"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="var(--accent)" stroke-width="7"
+              stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5"
+              id="donutCircle" transform="rotate(-90 40 40)" style="transition:stroke-dashoffset 1.3s ease"/>
+            <text x="40" y="40" class="cg-pct-text" id="donutPct">0%</text>
+          </svg>
+          <div class="cg-donut-lbl">Overall Score</div>
+        </div>
+        <div class="cg-boxes">
+          <div class="cg-box"><div class="bl">Correct</div><div class="bv g" id="cardC">0</div></div>
+          <div class="cg-box"><div class="bl">Wrong</div><div class="bv r" id="cardW">0</div></div>
+          <div class="cg-box"><div class="bl">Skipped</div><div class="bv y" id="cardSk">0</div></div>
+          <div class="cg-box"><div class="bl">Marks Scored</div><div class="bv b" id="cardMarks">0/82</div></div>
+          <div class="cg-grade-full">
+            <div class="gn" id="cardGradeName">—</div>
+            <div class="gm" id="cardGradeMsg">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION TABLE -->
+      <div class="ctable">
+        <div class="cth">
+          <div class="cth-c" style="text-align:left">Section</div>
+          <div class="cth-c">Total</div><div class="cth-c">Correct</div>
+          <div class="cth-c">Wrong</div><div class="cth-c">Score %</div>
+        </div>
+        <div class="ctr">
+          <div class="ctc" style="border-right:1px solid var(--border)">Section I — Employability &amp; Professional Skills</div>
+          <div class="ctc" style="border-right:1px solid var(--border)">33</div>
+          <div class="ctc g" id="tS1C" style="border-right:1px solid var(--border)">—</div>
+          <div class="ctc r" id="tS1W" style="border-right:1px solid var(--border)">—</div>
+          <div class="ctc" id="tS1P"><div class="bar-wr"><div class="bar-in" id="tS1Bar" style="width:0%"></div></div></div>
+        </div>
+        <div class="ctr">
+          <div class="ctc" style="border-right:1px solid var(--border)">Section II — RPA Technical &amp; Domain Skills</div>
+          <div class="ctc" style="border-right:1px solid var(--border)">49</div>
+          <div class="ctc g" id="tS2C" style="border-right:1px solid var(--border)">—</div>
+          <div class="ctc r" id="tS2W" style="border-right:1px solid var(--border)">—</div>
+          <div class="ctc" id="tS2P"><div class="bar-wr"><div class="bar-in" id="tS2Bar" style="width:0%"></div></div></div>
+        </div>
+        <div class="ctr-total">
+          <div class="ctc" style="font-weight:800;border-right:1px solid var(--ink)">TOTAL</div>
+          <div class="ctc" style="font-weight:800;border-right:1px solid var(--ink)">82</div>
+          <div class="ctc g" id="tTotC" style="font-weight:800;border-right:1px solid var(--ink)">—</div>
+          <div class="ctc r" id="tTotW" style="font-weight:800;border-right:1px solid var(--ink)">—</div>
+          <div class="ctc b" id="tTotP" style="font-weight:800">—</div>
+        </div>
+      </div>
+
+      <!-- PERF BAR -->
+      <div class="perf-lbl">Overall Performance Indicator</div>
+      <div class="perf-track"><div class="perf-fill" id="perfFill" style="width:0%"></div></div>
+      <div class="perf-ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+
+      <!-- REMARKS -->
+      <div class="cremarks">
+        <div class="cremarks-t">Evaluator's Remarks</div>
+        <div class="cremarks-tx" id="cardRemarks">—</div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="cfooter">
+        <div class="cfsig"><div class="cfsig-line"></div><div class="cfsig-lbl">Student Signature</div></div>
+        <div class="cfseal"><span>OFFICIAL<br>★<br>SEAL</span></div>
+        <div class="cfsig"><div class="cfsig-line"></div><div class="cfsig-lbl">Assessor Signature</div></div>
+        <div class="cfsig"><div class="cfsig-line"></div><div class="cfsig-lbl">Centre Head</div></div>
+      </div>
+    </div><!-- end .cc -->
+
+    <!-- BOTTOM STRIP -->
+    <div class="cstrip">
+      <span class="cstrip-l" id="cardStrip">RPA DEVELOPER ASSESSMENT · SSC/Q8604 · CONFIDENTIAL</span>
+      <span class="cstrip-r">Progress Card</span>
+    </div>
+
+  </div><!-- end #a4card -->
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  QUESTION BANK  —  82 Questions
+//  Section I  (0–32):  Employability & Professional Skills
+//  Section II (33–81): RPA Technical & Domain Skills
+//  a = 0-indexed correct answer
+// ══════════════════════════════════════════════════════
+const QS=[
+// ── SECTION I: Employability & Professional Skills (Q1–33) ──
+{s:1,q:"Which of the following best describes the primary purpose of developing employability skills in a vocational training program?",o:["To memorize theoretical concepts for examinations","To learn advanced programming languages exclusively","To develop interpersonal and professional abilities required for the workplace","To complete mandatory government documentation"],a:2},
+{s:1,q:"A student wants to make a strong first impression during a job interview. Which non-verbal communication behavior is most appropriate?",o:["Slouching to appear relaxed and approachable","Maintaining eye contact, sitting upright, and offering a firm handshake","Avoiding eye contact to appear humble","Checking the phone frequently to show time management"],a:1},
+{s:1,q:"Which of the following is an example of an effective career development strategy?",o:["Waiting for promotions without taking initiative","Avoiding networking with colleagues and professionals","Setting specific and achievable short-term and long-term career goals","Focusing only on technical skills and ignoring soft skills"],a:2},
+{s:1,q:"Riya received critical feedback from her supervisor about her work quality. What is the most professional response?",o:["Complain about the supervisor to other colleagues","Ignore the feedback and continue as before","Argue with the supervisor to defend her position","Thank the supervisor, reflect on the feedback, and implement improvements"],a:3},
+{s:1,q:"Which of the following best demonstrates active listening during a team meeting?",o:["Nodding, maintaining eye contact, and asking relevant questions","Taking notes without acknowledging the speaker","Multitasking while others are speaking","Interrupting colleagues to share your ideas immediately"],a:0},
+{s:1,q:"In the context of diversity and inclusion, which behavior is most appropriate in a professional workplace?",o:["Promoting only colleagues from the same regional background","Assigning tasks based on employees' gender or religion","Treating all colleagues with equal respect regardless of gender, caste, or disability","Avoiding interaction with colleagues from different cultural backgrounds"],a:2},
+{s:1,q:"Which of the following best describes the concept of emotional intelligence in a professional setting?",o:["The ability to solve complex mathematical problems quickly","Completing tasks independently without any team interaction","Memorizing technical documentation accurately","The capacity to understand, manage, and effectively express one's emotions and empathize with others"],a:3},
+{s:1,q:"What is the correct formal way to address a professional email when the recipient's name is not known?",o:["'To Whom It May Concern,' or 'Dear Sir/Madam,'","'Yo,what's up?'","'Hello buddy,'","'Hey there,'"],a:0},
+{s:1,q:"Which of the following is the MOST IMPORTANT characteristic of a suitable process for RPA implementation, from an employability perspective of an RPA Developer?",o:["Creative and judgment-intensive tasks","High complexity and frequent exceptions","Processes involving unstructured human conversations","Repetitive, rule-based, high-volume, and stable data"],a:3},
+{s:1,q:"A team member consistently misses deadlines, affecting the entire project. What should the team leader do?",o:["Have a private, constructive conversation addressing the issue and exploring solutions","Publicly criticize the team member in the next team meeting","Ignore the behavior hoping it will self-correct","Assign all tasks to other team members without discussion"],a:0},
+{s:1,q:"Which of the following is a key responsibility of a citizen in a democratic country?",o:["Disregarding civic duties to focus on career","Paying taxes honestly and following laws","Relying solely on government for personal development","Avoiding participation in elections"],a:1},
+{s:1,q:"Which skill is most associated with the ability to adapt to new technology, tools, or processes in the workplace?",o:["Introversion","Over-specialization","Adaptability","Rigidity"],a:2},
+{s:1,q:"What does POSH stand for in the context of workplace safety?",o:["Prevention of Online Sexual Harassment","Protection of Staff and Human Resources","Provision of Safe and Healthy Surroundings","Prevention of Sexual Harassment at the Workplace"],a:3},
+{s:1,q:"Which of the following correctly orders the waste management hierarchy from most to least preferred?",o:["Dispose → Recycle → Reduce → Reuse","Reuse → Recycle → Reduce → Dispose","Recycle → Reduce → Reuse → Dispose","Reduce → Reuse → Recycle → Dispose"],a:3},
+{s:1,q:"What type of bank account is best suited for short-term savings and daily financial transactions?",o:["Fixed Deposit Account","Demat Account","Savings Account","Non-Resident External Account"],a:2},
+{s:1,q:"Which of the following is an example of a digital payment method?",o:["Writing a post-dated cheque","Issuing a demand draft at the bank","Using UPI or a mobile wallet application","Handing cash to a colleague"],a:2},
+{s:1,q:"Which of the following best describes the concept of entrepreneurship?",o:["Following instructions from management without contributing ideas","Identifying opportunities and taking initiative to create a business or enterprise","Completing assigned tasks without taking additional risks","Working as an employee in a large corporation"],a:1},
+{s:1,q:"Which marketing concept refers to the combination of Product, Price, Place, and Promotion?",o:["Customer Relationship Management","Business Process Reengineering","4Ps of Marketing","SWOT Analysis"],a:2},
+{s:1,q:"Priya is preparing for a job interview. Which of the following actions would be LEAST helpful?",o:["Memorizing the company's entire annual report word for word","Practicing answers to common interview questions","Preparing a list of relevant questions to ask the interviewer","Researching the company's background and recent news"],a:0},
+{s:1,q:"Which of the following documents is typically submitted along with a resume to express interest in a specific job position?",o:["Salary slip","Appointment letter","Cover letter","Marksheet"],a:2},
+{s:1,q:"Which of the following is NOT a fundamental right of Indian citizens under the Constitution?",o:["Right to Equality","Right to Freedom of Religion","Right to Constitutional Remedies","Right to Property as a fundamental right"],a:3},
+{s:1,q:"A student creates a basic spreadsheet to track monthly expenses. This is an example of which digital skill?",o:["Cybersecurity expertise","Advanced programming","Basic digital literacy and essential digital skills","Cloud database administration"],a:2},
+{s:1,q:"Which of the following best defines 'teamwork' in a professional environment?",o:["Delegating all work to junior members of the team","Competing with colleagues to gain individual recognition","Collaborating with colleagues to achieve shared goals by leveraging each person's strengths","Completing all tasks individually without seeking help"],a:2},
+{s:1,q:"What is the primary purpose of creating a Curriculum Vitae (CV)?",o:["To apply for government welfare schemes","To provide a comprehensive summary of one's education, skills, and experience to potential employers","To document technical project code repositories","To list all personal complaints about previous employers"],a:1},
+{s:1,q:"Which of the following environmentally sustainable practices is most appropriate in an IT workplace?",o:["Using single-use plastics for packaging office equipment","Switching off devices when not in use and using digital documentation","Printing all documents for reference","Leaving computers running continuously overnight"],a:1},
+{s:1,q:"Which of the following best describes an apprenticeship opportunity?",o:["A full-time permanent job with immediate senior responsibilities","A freelancing project completed remotely without supervision","A short online quiz to test technical knowledge","A structured on-the-job training program that combines practical work experience with formal learning"],a:3},
+{s:1,q:"A newly hired RPA Developer receives instructions that seem unclear. What is the best course of action?",o:["Proceed with assumptions and fix mistakes later","Politely seek clarification from the supervisor before proceeding","Wait for another team member to take the lead","Ignore the instructions and work independently"],a:1},
+{s:1,q:"Which of the following is the correct sequence for creating a business plan?",o:["Funding → Market Research → Idea → Execution","Execution → Funding → Idea → Planning","Idea → Market Research → Business Plan → Funding → Execution","Market Research → Execution → Funding → Idea"],a:2},
+{s:1,q:"Which of the following best illustrates 'inclusive behavior' toward a colleague with a physical disability?",o:["Assigning only light tasks to them without consulting them","Ignoring them during team activities to avoid awkward situations","Doing all their work for them out of sympathy","Offering accessible facilities and treating them with full professional respect"],a:3},
+{s:1,q:"Which of the following is the most appropriate customer service behavior when dealing with an upset client?",o:["Listen actively, empathize, and work toward a resolution","Dismiss the client's concern as invalid","Argue back to prove the company's point","Transfer the call immediately without attempting to resolve the issue"],a:0},
+{s:1,q:"Which sentence is grammatically correct?",o:["Each of the developers have submitted their report.","She don't know the answer to the question.","Neither of the candidates were selected for the role.","The team has completed its assigned project successfully."],a:3},
+{s:1,q:"What is the primary government scheme in India focused on skill development and vocational training for youth?",o:["Pradhan Mantri Kaushal Vikas Yojana (PMKVY)","PM Kisan Samman Nidhi","Pradhan Mantri Awas Yojana","Ayushman Bharat"],a:0},
+{s:1,q:"Which of the following is a healthy practice for work-life balance in a high-pressure IT job?",o:["Taking regular breaks, setting boundaries, and pursuing hobbies outside work","Avoiding all social interaction to focus solely on work","Working 16+ hours daily to prove dedication","Skipping meals to complete project deadlines"],a:0},
+// ── SECTION II: RPA Technical & Domain Skills (Q34–82) ──
+{s:2,q:"What does RPA stand for?",o:["Real-time Programming Architecture","Robotic Process Automation","Remote Process Algorithm","Rule-based Process Analysis"],a:1},
+{s:2,q:"Which of the following BEST differentiates RPA from traditional automation?",o:["Traditional automation is always faster than RPA","RPA can only automate manufacturing processes","RPA requires modifications to existing backend systems","RPA works at the UI layer without needing access to source code"],a:3},
+{s:2,q:"Which type of RPA bot runs automatically without requiring human intervention during execution?",o:["Assisted RPA","Conversational RPA","Cognitive RPA","Unassisted RPA"],a:3},
+{s:2,q:"Which of the following best describes 'Cognitive RPA'?",o:["RPA that works exclusively on mobile devices","RPA that integrates AI, ML, and NLP to handle unstructured data and complex decisions","An automation tool used only for manufacturing robots","Automation limited to simple data entry tasks"],a:1},
+{s:2,q:"Which of the following processes is MOST suitable for RPA implementation?",o:["Monthly payroll processing involving rule-based calculations from structured data","A task requiring creative design and subjective judgment","Strategic business planning involving senior executive decisions","Customer complaint resolution requiring empathy and negotiation"],a:0},
+{s:2,q:"What is the correct order of the RPA lifecycle?",o:["Discovery → Design → Development → Testing → Deployment → Monitoring","Monitoring → Discovery → Design → Development → Testing","Testing → Design → Development → Deployment → Monitoring","Deployment → Testing → Design → Discovery → Monitoring"],a:0},
+{s:2,q:"Which of the following documents is primarily used to capture the 'as-is' and 'to-be' process during RPA design?",o:["Bug Tracking Log","Test Execution Report","Process Design Document (PDD)","Source Code Repository"],a:2},
+{s:2,q:"What does a Solution Design Document (SDD) contain in an RPA project?",o:["Employee performance reviews of the RPA team","Technical specifications of the bot, infrastructure, and security protocols","Only the list of bugs found during testing","The final invoice of the RPA project"],a:1},
+{s:2,q:"Which of the following is a key criterion for determining if a process is suitable for RPA?",o:["The process is highly complex and requires domain expertise at every step","The process is repetitive, rule-based, and involves structured data","The process changes significantly every week","The process involves frequent creative decision-making"],a:1},
+{s:2,q:"Which of the following correctly describes the 'ROI' in the context of an RPA project?",o:["Return on Infrastructure","Reliability of Integration — checking API stability","Return on Investment — measuring the financial benefit of automation against its cost","Risk of Implementation — assessing project failure probability"],a:2},
+{s:2,q:"In RPA infrastructure, what is the role of the 'Control Room'?",o:["A physical room where developers write code","A centralized management platform for scheduling, monitoring, and managing bots","A database for storing raw business data","A test environment for UAT only"],a:1},
+{s:2,q:"Which of the following best distinguishes an 'attended bot' from an 'unattended bot'?",o:["Unattended bots can only process emails","Attended bots run automatically while unattended bots require human input","Attended bots require human interaction during execution; unattended bots run fully automatically","Both types are identical in functionality"],a:2},
+{s:2,q:"Which version control tool is most commonly used in RPA bot development?",o:["MS PowerPoint","Git","Notepad","MS Excel"],a:1},
+{s:2,q:"In RPA security, what does 'Role-Based Access Control (RBAC)' refer to?",o:["Giving all users equal access to all systems","Blocking all external network access permanently","Using biometric authentication only","Granting access to systems and data based on a user's assigned role"],a:3},
+{s:2,q:"Which of the following is NOT a type of testing used in RPA bot quality assurance?",o:["Black Box Testing","Unit Testing","Financial Auditing","System Testing"],a:2},
+{s:2,q:"What is the purpose of 'exception handling' in an RPA bot?",o:["To manage errors and unexpected scenarios gracefully without bot failure","To convert unstructured data into structured format","To enhance the visual design of the bot's interface","To increase the bot's execution speed"],a:0},
+{s:2,q:"Which of the following is an example of a 'schedule trigger' in RPA?",o:["A bot that activates when an email arrives","A bot that starts when a user clicks a button on screen","A bot that runs when a specific file is detected","A bot that runs automatically every Monday at 9 AM without manual intervention"],a:3},
+{s:2,q:"Which tool from the following is used for RPA bot testing and quality assurance?",o:["Puppet","Selenium","Git","UiPath Studio"],a:1},
+{s:2,q:"What type of bug occurs when a bot receives NULL or empty data that it was not designed to handle?",o:["UI Mapping Bug","Logic Bug","Performance Bug","Null/Empty Input Bug"],a:3},
+{s:2,q:"Which of the following best describes 'Black Box Testing' in the context of RPA?",o:["Testing only the database components","Testing the internal code logic line by line","Testing only error-handling scenarios","Testing bot functionality without knowledge of internal code, focusing on inputs and outputs"],a:3},
+{s:2,q:"Which of the following KPIs is most relevant for post-deployment monitoring of an RPA solution?",o:["Total number of training hours completed","Bot accuracy rate and throughput","Color scheme of the RPA tool dashboard","Number of employees in the IT department"],a:1},
+{s:2,q:"What does CI/CD stand for in the context of RPA bot development?",o:["Continuous Integration / Continuous Delivery","Centralized Infrastructure / Cloud Deployment","Code Inspection / Code Documentation","Customer Integration / Custom Deployment"],a:0},
+{s:2,q:"Which of the following correctly describes 'hyperautomation'?",o:["A strategic approach combining RPA, AI, ML, and other technologies to automate complex end-to-end business processes","Running multiple bots on the same machine","Automating only a single isolated task within a process","Automation limited to web scraping activities"],a:0},
+{s:2,q:"In the context of RPA, what does 'NLP' enable bots to do?",o:["Connect to databases using SQL queries","Generate graphical user interfaces automatically","Understand, interpret, and process natural language text and speech","Perform arithmetic calculations faster"],a:2},
+{s:2,q:"Which of the following is the primary purpose of a 'Business Continuity Plan (BCP)' in an RPA project?",o:["To ensure the RPA solution can continue functioning during unexpected failures or disasters","To track employee attendance during bot deployment","To describe the marketing strategy for the automation product","To monitor social media mentions of the company"],a:0},
+{s:2,q:"Which of the following programming languages is most commonly used for scripting in RPA solutions?",o:["XML","HTML","CSS","Python"],a:3},
+{s:2,q:"What is the primary advantage of using 'componentization' in RPA bot development?",o:["It increases the size of the deployment package","It reduces the visual appearance of the bot interface","It creates reusable modular components that can be used across multiple bots and workflows","It eliminates the need for version control tools"],a:2},
+{s:2,q:"Which of the following infrastructure options involves running RPA bots on a third-party cloud platform?",o:["Cloud-based infrastructure","Hybrid infrastructure","Local desktop deployment only","On-premise infrastructure"],a:0},
+{s:2,q:"What does 'throughput' measure in an RPA post-deployment monitoring context?",o:["The number of developers working on the RPA project","The number of transactions or processes completed by the bot per unit time","The cost of the RPA software license","The total storage capacity used by bot logs"],a:1},
+{s:2,q:"Which of the following best describes the 'happy path' in RPA testing?",o:["The path followed during disaster recovery","The bot's performance during peak load testing","The testing scenario that covers all possible exceptions","The standard, error-free execution path where all inputs are valid and expected"],a:3},
+{s:2,q:"What type of RPA trigger activates a bot when a specific email is received?",o:["Schedule Trigger","File System Trigger","Click Trigger","Email Trigger"],a:3},
+{s:2,q:"Which of the following tools is primarily used for managing RPA bot deployment and configuration in an enterprise environment?",o:["Apache Kafka","MS Word","UiPath Orchestrator / Automation Anywhere Control Room","Jupyter Notebook"],a:2},
+{s:2,q:"What is the purpose of maintaining a 'debug log' during RPA bug fixing?",o:["To store user credentials securely","To generate a performance report for stakeholders","To create marketing documentation for the bot","To record detailed information about bot execution steps to help identify and fix errors"],a:3},
+{s:2,q:"Which of the following best describes 'Computer Vision' in the context of RPA?",o:["A technique for compressing large data files automatically","Technology that allows bots to identify and interact with UI elements visually, even without API access","A method for encrypting sensitive data in bot logs","A feature that generates reports in different visual formats"],a:1},
+{s:2,q:"In RPA infrastructure, which of the following correctly describes a 'hybrid deployment'?",o:["A combination of on-premise and cloud infrastructure for deploying RPA bots","Bots that run only on mobile devices","All bots running exclusively on local desktops","Using only open-source tools without any cloud components"],a:0},
+{s:2,q:"Which methodology is most commonly applied in RPA projects to ensure iterative development and continuous improvement?",o:["Fishbone analysis methodology","Agile methodology","Six Sigma methodology exclusively","Waterfall methodology only"],a:1},
+{s:2,q:"Which of the following correctly describes the role of 'Machine Learning' in intelligent RPA solutions?",o:["ML is used only to design the user interface of bots","ML is used exclusively for generating automated test scripts","ML enables bots to learn from data patterns, improve accuracy, and handle tasks that require prediction or classification","ML replaces human developers in the RPA development process"],a:2},
+{s:2,q:"What is the primary purpose of the 'Operational Impact Document' in an RPA project?",o:["To list all the technical bugs found during testing","To describe the marketing budget for the automation initiative","To track employee training completion records","To document how the RPA implementation will affect operations, staffing, and workflows"],a:3},
+{s:2,q:"Which of the following is a key security consideration specific to 'unattended bots' in an enterprise RPA environment?",o:["Unattended bots require strict credential management, encrypted storage of bot IDs, and role-based access control","Unattended bots should always use the same credentials as the human operator","Unattended bots need colorful dashboards for easy monitoring","Unattended bots never require any security protocols as they run autonomously"],a:0},
+{s:2,q:"Which of the following best defines 'process velocity' as a KPI for an RPA solution?",o:["The frequency of scheduled maintenance downtime","The rate at which a business process is completed end-to-end by the bot","The number of developers who contributed to the bot's code","The physical speed of the server processing the bot"],a:1},
+{s:2,q:"A developer notices that a bot fails when the target application takes longer than usual to load. What is the most appropriate fix?",o:["Change the operating system of the bot machine","Remove all exception handling to speed up execution","Increase the screen resolution of the server","Add explicit wait or dynamic wait conditions to handle variable application response times"],a:3},
+{s:2,q:"Which of the following correctly describes BPMN in the context of process mapping for RPA?",o:["Binary Process Mapping Notation — used for encoding automation scripts","Bot Programming Management Node — an RPA-specific scripting framework","Business Property Management Network — a financial reporting standard","Business Process Model and Notation — a standardized method for modeling business workflows"],a:3},
+{s:2,q:"Which of the following is the FIRST step in a structured RPA project implementation approach?",o:["Deploy the bot to production immediately","Purchase RPA software licenses before analysis","Identify and analyze business processes suitable for automation","Begin coding the bot without documentation"],a:2},
+{s:2,q:"What is the significance of 'data governance' in cloud-based RPA deployments?",o:["It replaces the need for software testing in cloud environments","It ensures that data used and processed by bots complies with privacy laws, security policies, and regulatory standards","It determines the visual design of the RPA dashboard","It speeds up the internet connection for bot execution"],a:1},
+{s:2,q:"Which of the following describes the benefit of using 'configuration files' in RPA bot development?",o:["They store environment-specific settings externally so bots can be deployed across different environments without code changes","They replace the need for any programming in the bot","They compress the bot's source code to reduce file size","They automatically generate the bot's user interface"],a:0},
+{s:2,q:"In RPA bot design, what does 'reusability' of programming modules primarily achieve?",o:["It prevents integration with external APIs","It restricts the bot from accessing multiple applications","It increases the complexity of the codebase unnecessarily","It allows the same code component to be used in multiple workflows, reducing development time and inconsistencies"],a:3},
+{s:2,q:"Which of the following best describes the relationship between 'functional requirements' and 'non-functional requirements' in an RPA project?",o:["Functional requirements only apply to testing phases","Functional requirements define what the bot should do; non-functional requirements define how well it should perform (speed, security, reliability)","Non-functional requirements are always more important than functional requirements","They are identical and can be used interchangeably"],a:1},
+{s:2,q:"Which of the following RPA tools is owned by UiPath and is primarily used for bot development?",o:["Power Automate","Automation Anywhere IQ Bot","Blue Prism Designer","UiPath Studio"],a:3},
+{s:2,q:"Which of the following correctly explains why 'secure coding practices' are critical in RPA bot development?",o:["They make the bot's interface more visually appealing","They prevent unauthorized access, data leakage, and vulnerabilities that could be exploited within the automation workflow","They automatically document the bot's code","They speed up the bot's execution time significantly"],a:1},
+{s:2,q:"What is the primary function of 'Orchestrator' in UiPath's RPA architecture?",o:["To write and debug bot workflows directly","To perform optical character recognition on documents","To centrally deploy, schedule, monitor, and manage multiple bots across the enterprise","To create process design documents for stakeholders"],a:2}
+];
+
+const TOTAL=82,S1=33;
+let cur=0,ans=new Array(TOTAL).fill(null),shown=new Array(TOTAL).fill(false);
+let timerSec=90*60,timerInt=null,reviewMode=false,RD={};
+
+function startExam(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('exam').style.display='flex';
+  buildMap();renderQ(0);timerInt=setInterval(tick,1000);
+}
+function tick(){
+  timerSec--;
+  const m=Math.floor(timerSec/60),s=timerSec%60;
+  const el=document.getElementById('tbTimer');
+  el.textContent=(m>0?m+':'+(s<10?'0':'')+s:s+'s');
+  if(timerSec<=300)el.classList.add('warn');
+  if(timerSec<=0){clearInterval(timerInt);showResults();}
+}
+function buildMap(){
+  const mp=document.getElementById('qmap');mp.innerHTML='';
+  for(let i=0;i<TOTAL;i++){
+    const d=document.createElement('div');d.className='qd';d.textContent=i+1;d.onclick=(()=>{const x=i;return()=>{if(shown[x])go(x-cur);else renderQ(x);}})();mp.appendChild(d);
+  }updateMap();
+}
+function updateMap(){
+  const ds=document.querySelectorAll('.qd');
+  ds.forEach((d,i)=>{
+    d.className='qd';
+    if(i===cur)d.classList.add('cur');
+    else if(ans[i]===null&&shown[i])d.classList.add('skp');
+    else if(ans[i]!==null){
+      if(shown[i])d.classList.add(ans[i]===QS[i].a?'cok':'cwr');
+      else d.classList.add('ans');
+    }
+  });
+}
+function renderQ(i){
+  cur=i;const q=QS[i];
+  document.getElementById('secTag').className='sec-tag s'+(q.s);
+  document.getElementById('secTag').textContent='Section '+(q.s===1?'I — Employability & Professional Skills':'II — RPA Technical & Domain Skills');
+  document.getElementById('qMeta').textContent='Question '+(i+1)+' of '+TOTAL+' · '+(q.s===1?'Employability':'RPA Technical');
+  document.getElementById('qText').textContent=q.q;
+  const oc=document.getElementById('opts');oc.innerHTML='';
+  ['A','B','C','D'].forEach((l,j)=>{
+    const b=document.createElement('button');b.className='opt';b.dataset.idx=j;
+    b.innerHTML='<span class="opt-ltr">'+l+'</span><span>'+q.o[j]+'</span>';
+    b.onclick=()=>select(j);oc.appendChild(b);
+  });
+  const fb=document.getElementById('feedback');fb.className='feedback';fb.textContent='';
+  if(shown[i])restoreState(i);
+  document.getElementById('tbFill').style.width=((i+1)/TOTAL*100)+'%';
+  document.getElementById('tbCount').textContent='Q '+(i+1)+' / '+TOTAL;
+  updateMap();updateSidebar();
+  document.getElementById('prevBtn').disabled=(i===0);
+  document.getElementById('nextBtn').textContent=i===TOTAL-1?'Finish ✓':'Next →';
+}
+function restoreState(i){
+  const q=QS[i],opts=document.querySelectorAll('.opt');
+  opts.forEach((b,j)=>{
+    b.disabled=true;
+    if(ans[i]===null)b.classList.add('rev',j===q.a);
+    else if(j===ans[i])b.classList.add(ans[i]===q.a?'cor':'wrg');
+    else if(j===q.a)b.classList.add('rev');
+  });
+  const fb=document.getElementById('feedback');
+  if(ans[i]===null){fb.className='feedback ko';fb.innerHTML='⏭ Skipped — Correct answer: <strong>'+['A','B','C','D'][q.a]+'. '+q.o[q.a]+'</strong>';}
+  else if(ans[i]===q.a){fb.className='feedback ok';fb.innerHTML='✅ Correct!';}
+  else{fb.className='feedback ko';fb.innerHTML='❌ Incorrect — Correct answer: <strong>'+['A','B','C','D'][q.a]+'. '+q.o[q.a]+'</strong>';}
+}
+function select(j){
+  if(shown[cur])return;
+  shown[cur]=true;ans[cur]=j;
+  const q=QS[cur];const opts=document.querySelectorAll('.opt');
+  opts.forEach((b,k)=>{b.disabled=true;if(k===j)b.classList.add(j===q.a?'cor':'wrg');if(k===q.a)b.classList.add('rev');});
+  const fb=document.getElementById('feedback');
+  if(j===q.a){fb.className='feedback ok';fb.textContent='✅ Correct!';}
+  else{fb.className='feedback ko';fb.innerHTML='❌ Incorrect — Correct answer: <strong>'+['A','B','C','D'][q.a]+'. '+q.o[q.a]+'</strong>';}
+  updateSidebar();updateMap();
+  setTimeout(()=>{if(cur<TOTAL-1)go(1);},900);
+}
+function skip(){
+  if(!shown[cur]){shown[cur]=true;restoreState(cur);}
+  if(cur<TOTAL-1)go(1);else showResults();
+}
+function go(d){
+  const nx=cur+d;
+  if(d===1&&cur===TOTAL-1){showResults();return;}
+  if(nx<0||nx>=TOTAL)return;
+  renderQ(nx);
+}
+function updateSidebar(){
+  let c=0,w=0;
+  ans.forEach((a,i)=>{if(a!==null){if(a===QS[i].a)c++;else w++;}});
+  document.getElementById('sbC').textContent=c;document.getElementById('sbW').textContent=w;
+}
+function calcResults(){
+  let correct=0,wrong=0,skipped=0,s1c=0,s2c=0,s1w=0,s2w=0;
+  ans.forEach((a,i)=>{
+    if(a===null)skipped++;
+    else if(a===QS[i].a){correct++;if(QS[i].s===1)s1c++;else s2c++;}
+    else{wrong++;if(QS[i].s===1)s1w++;else s2w++;}
+  });
+  const pct=Math.round(correct/TOTAL*100);
+  return{correct,wrong,skipped,s1c,s2c,s1w,s2w,pct};
+}
+function getGL(p){return p>=90?'A+':p>=75?'A':p>=60?'B+':p>=40?'B':'C';}
+function getGrade(p){
+  if(p>=90)return['<span style="color:#4ade80">Outstanding! 🏆</span>','Exceptional performance — Ready for placement!'];
+  if(p>=75)return['<span style="color:#22d3ee">Excellent! 🌟</span>','Strong command of RPA concepts — Highly recommended for interviews.'];
+  if(p>=60)return['<span style="color:#fbbf24">Good Job! 👍</span>','Solid understanding — Some areas need further improvement.'];
+  if(p>=40)return['<span style="color:#fb923c">Keep Going! 📈</span>','Basic concepts grasped — Focused revision required.'];
+  return['<span style="color:#f87171">Keep Trying! 💪</span>','Significant improvement needed — Revisit the course material.'];
+}
+function showResults(){
+  clearInterval(timerInt);
+  const rd=calcResults();RD=rd;
+  document.getElementById('exam').style.display='none';
+  document.getElementById('results').style.display='block';
+  document.getElementById('resPct').textContent=rd.pct+'%';
+  const circ=427.3,off=circ-(rd.pct/100)*circ;
+  setTimeout(()=>{document.getElementById('ringFg').style.strokeDashoffset=off;},300);
+  const[grHtml,msg]=getGrade(rd.pct);
+  document.getElementById('resGrade').innerHTML=grHtml;
+  document.getElementById('resMsg').textContent=msg;
+  document.getElementById('resC').textContent=rd.correct;
+  document.getElementById('resW').textContent=rd.wrong;
+  document.getElementById('resSk').textContent=rd.skipped;
+  const s1t=S1,s2t=TOTAL-S1,s1p=Math.round(rd.s1c/s1t*100),s2p=Math.round(rd.s2c/s2t*100);
+  document.getElementById('resSBars').innerHTML=`
+    <div class="rsb-row"><div class="rsb-label">Section I (Employability)</div><div class="rsb-bar"><div class="rsb-fill" style="width:${s1p}%"></div></div><div class="rsb-pct">${s1p}%</div></div>
+    <div class="rsb-row"><div class="rsb-label">Section II (RPA Technical)</div><div class="rsb-bar"><div class="rsb-fill" style="width:${s2p}%"></div></div><div class="rsb-pct">${s2p}%</div></div>`;
+  if(rd.pct>=75)launchConfetti();
+}
+function toggleReview(){
+  const ra=document.getElementById('reviewArea');
+  if(ra.innerHTML){ra.innerHTML='';return;}
+  let html='<h3 style="font-family:\'Cormorant Garamond\',serif;font-size:1.5rem;margin-bottom:20px">Answer Review</h3>';
+  QS.forEach((q,i)=>{
+    const a=ans[i],cor=a===q.a,skp=a===null;
+    const cls=cor?'rq-c':skp?'rq-s':'rq-w';
+    html+=`<div class="rev-q ${cls}"><div class="rev-qn">Q${i+1} · Section ${q.s===1?'I':'II'} · ${cor?'✅ Correct':skp?'⏭ Skipped':'❌ Wrong'}</div><div class="rev-qt">${q.q}</div><div class="rev-opts">`;
+    q.o.forEach((op,j)=>{
+      let oc='rev-opt';
+      if(j===q.a)oc+=' ro-c';
+      else if(j===a&&!cor)oc+=' ro-w';
+      html+=`<div class="${oc}"><span class="rev-opt-ltr">${['A','B','C','D'][j]}</span><span>${op}</span></div>`;
+    });
+    html+='</div></div>';
+  });
+  ra.innerHTML=html;
+}
+function launchConfetti(){
+  const cols=['#4ade80','#1a4fd6','#fbbf24','#f87171','#22d3ee','#a78bfa'];
+  for(let i=0;i<90;i++) setTimeout(()=>{
+    const e=document.createElement('div');
+    e.style.cssText='position:fixed;top:-10px;border-radius:3px;pointer-events:none;z-index:9999;animation:fall linear forwards;left:'+Math.random()*100+'vw;background:'+cols[~~(Math.random()*cols.length)]+';animation-duration:'+(1.5+Math.random()*2)+'s;animation-delay:'+Math.random()*.5+'s;width:'+(6+Math.random()*10)+'px;height:'+(6+Math.random()*10)+'px';
+    const ks=document.createElement('style');ks.textContent='@keyframes fall{to{top:110vh;transform:rotate(720deg);opacity:0}}';document.head.appendChild(ks);
+    document.body.appendChild(e);setTimeout(()=>e.remove(),4000);
+  },i*25);
+}
+function retake(){
+  cur=0;ans=new Array(TOTAL).fill(null);shown=new Array(TOTAL).fill(false);
+  timerSec=90*60;reviewMode=false;
+  document.getElementById('results').style.display='none';
+  document.getElementById('tbTimer').classList.remove('warn');
+  document.getElementById('tbTimer').textContent='1:30:00';
+  document.getElementById('exam').style.display='flex';
+  buildMap();renderQ(0);timerInt=setInterval(tick,1000);
+}
+function backHome(){
+  ['results','exam','certForm','certView'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('landing').style.display='flex';
+  cur=0;ans=new Array(TOTAL).fill(null);shown=new Array(TOTAL).fill(false);
+  timerSec=90*60;reviewMode=false;
+  document.getElementById('tbTimer').classList.remove('warn');
+  document.getElementById('tbTimer').textContent='1:30:00';
+}
+function goToCertForm(){
+  document.getElementById('results').style.display='none';
+  document.getElementById('certForm').style.display='flex';
+}
+function generateCard(){
+  const name=document.getElementById('cfName').value.trim();
+  const adm=document.getElementById('cfAdm').value.trim();
+  const batch=document.getElementById('cfBatch').value.trim();
+  const inst=document.getElementById('cfInst').value.trim()||'IT-ITeS Skill Centre';
+  if(!name||!adm||!batch){alert('Please fill in Name, Admission Number and Batch.');return;}
+  populateCard(name,adm,batch,inst);
+  document.getElementById('certForm').style.display='none';
+  document.getElementById('certView').style.display='flex';
+}
+function populateCard(name,adm,batch,inst){
+  const{correct,wrong,skipped,s1c,s2c,s1w,s2w,pct}=RD;
+  const s1t=S1,s2t=TOTAL-S1;
+  const docId='RPADE/'+new Date().getFullYear()+'/'+adm;
+  const dateStr=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('cardInst').textContent=inst;
+  document.getElementById('cardDocId').textContent=docId;
+  document.getElementById('cardDate').textContent=dateStr;
+  document.getElementById('cardName').textContent=name;
+  document.getElementById('cardAdm').textContent=adm;
+  document.getElementById('cardBatch').textContent=batch;
+  document.getElementById('cardGradeBadge').textContent=getGL(pct);
+  document.getElementById('cardC').textContent=correct;
+  document.getElementById('cardW').textContent=wrong;
+  document.getElementById('cardSk').textContent=skipped;
+  document.getElementById('cardMarks').textContent=correct+'/82';
+  document.getElementById('donutPct').textContent=pct+'%';
+  const[grLabel,msg]=getGrade(pct);
+  document.getElementById('cardGradeName').textContent=getGL(pct)+' — '+['Outstanding','Excellent','Good','Keep Going','Keep Trying'][pct>=90?0:pct>=75?1:pct>=60?2:pct>=40?3:4];
+  document.getElementById('cardGradeMsg').textContent=msg;
+  const s1p=Math.round(s1c/s1t*100),s2p=Math.round(s2c/s2t*100);
+  document.getElementById('tS1C').textContent=s1c;
+  document.getElementById('tS1W').textContent=s1w;
+  document.getElementById('tS2C').textContent=s2c;
+  document.getElementById('tS2W').textContent=s2w;
+  document.getElementById('tTotC').textContent=correct;
+  document.getElementById('tTotW').textContent=wrong;
+  document.getElementById('tTotP').textContent=pct+'%';
+  document.getElementById('tS1Bar').style.width=s1p+'%';
+  document.getElementById('tS2Bar').style.width=s2p+'%';
+  document.getElementById('perfFill').style.width=pct+'%';
+  const circ=188.5,off=circ-(pct/100)*circ;
+  setTimeout(()=>{document.getElementById('donutCircle').style.strokeDashoffset=off;},400);
+  document.getElementById('cardRemarks').textContent=getRemarks(pct,s1c/s1t,s2c/s2t);
+  document.getElementById('cardStrip').textContent='RPADE · '+adm+' · '+dateStr.toUpperCase()+' · CONFIDENTIAL';
+}
+function getRemarks(pct,s1r,s2r){
+  let base='';
+  if(pct>=90)base='The student has demonstrated outstanding mastery of RPA concepts, bot design, development, testing, and employability skills. Performance is exceptional across all evaluation parameters. Strongly recommended for placement as an RPA Developer.';
+  else if(pct>=75)base='The student has shown excellent understanding of RPA workflows, automation principles, and professional competencies. A commendable result with strong practical aptitude. Recommended for placement interviews for RPA Developer roles.';
+  else if(pct>=60)base='The student demonstrates a good understanding of RPA fundamentals. There is room for improvement, particularly in advanced topics such as bot testing, infrastructure, and scripting. Consistent practice before placement is advised.';
+  else if(pct>=40)base='The student has grasped basic RPA concepts but requires focused improvement across several modules. Regular revision of RPA tool usage, bot development, and exception handling is strongly recommended prior to seeking placement.';
+  else base='The student needs significant improvement across all areas of the RPA Developer curriculum. It is recommended to revisit all course modules, practice with RPA tools, seek instructor guidance, and attempt the assessment again after thorough preparation.';
+  const weak=[];
+  if(s1r<0.6)weak.push('Employability & Professional Skills');
+  if(s2r<0.6)weak.push('RPA Technical & Domain Skills');
+  if(weak.length>0)base+=' Areas requiring focused attention: '+weak.join(' and ')+'.';
+  return base;
+}
+</script>
+</body>
+</html>
